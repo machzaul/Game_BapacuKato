@@ -1,0 +1,1 @@
+elapsed_ticks = pygame.time.get_ticks() - start_ticks
