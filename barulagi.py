@@ -13,6 +13,7 @@ clock = pygame.time.Clock()
 fps = 60
 background = pygame.image.load("layangancanva.png")
 background = pygame.transform.scale(background, (200, 120))
+start_ticks = pygame.time.get_ticks()
 
 
 
@@ -26,8 +27,8 @@ font = pygame.font.Font('assets/fonts/Cheri-drog.ttf', 36)
 fonthelp = pygame.font.Font('assets/fonts/Cheri-drog.ttf', 24)
 
 #sound
-pygame.mixer.music.load('assets/sounds/backsound bapacukato.mp3')
-pygame.mixer.music.set_volume(0.1)
+smemeu = pygame.mixer.music.load('assets/sounds/backsound bapacukato.mp3')
+pygame.mixer.music.set_volume(0.9)
 pygame.mixer.music.play(-1)
 langkahkaki = pygame.mixer.Sound('assets/sounds/wood-creak-single-v2-97096 (1).mp3')
 petir = pygame.mixer.Sound('assets/sounds/suara petir.mp3')
@@ -36,10 +37,12 @@ splash = pygame.mixer.Sound('assets/sounds/click.mp3')
 kalah = pygame.mixer.Sound('assets/sounds/kalah.mp3')
 awas = pygame.mixer.Sound('assets/sounds/awas asli.mp3')
 lose = pygame.mixer.Sound('assets/sounds/Instrument Strum.mp3')
+dorslam = pygame.mixer.Sound('assets/sounds/Door slam 🚪 (mp3cut.net).mp3')
 chilplay = pygame.mixer.Sound('assets/sounds/kids-in-classroom-6187.mp3')
 bite.set_volume(0.3)
+dorslam.set_volume(1.2)
 splash.set_volume(0.2)
-kalah.set_volume(0.2)
+kalah.set_volume(0.8)
 awas.set_volume(0.2)
 lose.set_volume(0.3)
 
@@ -56,7 +59,7 @@ selected_color = (255, 0, 0)  # Default font color
 highscore = 0
 
 #background
-gambar = pygame.transform.scale(pygame.image.load("img/bg/bg pbo.jpg"), (WIDTH, HEIGHT))
+gambar = pygame.transform.scale(pygame.image.load("img/bg/LOGO3.png"), (WIDTH, HEIGHT))
 bghelp = pygame.transform.scale(pygame.image.load("img/bg/bghelp.jpg"), (WIDTH, HEIGHT))
 logo = pygame.transform.scale(pygame.image.load("img/bg/Untitled_design__2_-removebg (1).png"), (400, 200))
 bg3 = pygame.transform.scale(pygame.image.load("img/bg/bg2.5.jpg"), (WIDTH, HEIGHT))
@@ -102,6 +105,10 @@ lives4 = pygame.transform.scale(pygame.image.load("img/hati/4hati-removebg-previ
 lives5 = pygame.transform.scale(pygame.image.load("img/hati/5hati-removebg-preview.png"), (180, 55))
 current_background = 0
 
+#perubahan marah
+marah = pygame.transform.scale(pygame.image.load("marah.png"), (100, 100))
+ngintip = pygame.transform.scale(pygame.image.load("ngintip.png"), (38, 38))
+
 # Function to draw background
 def draw_background(index):
     screen.blit(backgrounds[index], (0, 0))
@@ -114,7 +121,7 @@ class GameObject:
         self.y = y
         self.width = width
         self.height = height
-        self.color = color
+        self._color = color
 
     def draw(self):
         pass  # Abstract method
@@ -122,7 +129,7 @@ class GameObject:
     def update(self):
         pass  # Abstract method
 
-class Word(GameObject):
+class Word(GameObject): #turunan gameobject
     def __init__(self, text, speed, x, y):
         super().__init__(x, y, 50, 50, 'black')  # Use appropriate width and height based on font size
         self.text = text
@@ -148,6 +155,7 @@ class BapacuKato:
         self.word_delay = 3
         self.word_timer = 0
         self.random_number = random.randint(0, 100)
+        self.salah = False
 
     def generate_word(self):
         word_text = random.choice([word.lower() for word in nltk.corpus.words.words() if len(word) <= 6])
@@ -189,6 +197,7 @@ class BapacuKato:
                     selected_color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
     def update(self):
+        global start_ticks
         if not paused:
             if self.word_timer <= 0:
                 self.generate_word()
@@ -201,13 +210,19 @@ class BapacuKato:
                 if word.x + word.width < 0:
                     word_list.remove(word)
                     self.lives -= 1
+                    start_ticks = 0
+                    self.salah = True
+                    start_ticks = pygame.time.get_ticks()
                     lose.play()
+                    dorslam.play()
                     if self.lives <= 0:
                         kalah.play()  # Stop game when lives reach 0 or less
                         game_over()
 
     def draw(self):
-        global lives1, lives2, lives3, lives4, lives5 # Stop game when
+        global lives1, lives2, lives3, lives4, lives5, start_ticks
+        elapsed_ticks = pygame.time.get_ticks() - start_ticks# Stop game when
+        pygame.mixer.music.set_volume(0.3)
         if self.random_number % 2 == 0:
             screen.blit(bg3, (0, 0))
         else:
@@ -218,14 +233,22 @@ class BapacuKato:
         pygame.draw.rect(screen, 'black', [0, 0, WIDTH, HEIGHT], 2)
         for word in word_list:
             word.draw()
-        score_text = fonthelp.render("Score: " + str(self.score), True, (0, 0, 0))
+        score_text = fonthelp.render("Score: " + str(self.score), True, (210, 180, 140))
         screen.blit(score_text, (882, 50))
         lives_text = font.render("", True, (0, 0, 0))
         screen.blit(lives_text, (20, 10))
         input_text = font.render("Input: " + self.active_string, True, (0, 0, 0))
         screen.blit(input_text, (270,545))
-        highscore_text = fonthelp.render("Highscore: " + str(highscore), True, (0, 0, 0))
+        highscore_text = fonthelp.render("Highscore: " + str(highscore), True, (210, 180, 140))
         screen.blit(highscore_text, (830, 10))
+        if self.salah == False:
+            screen.blit(ngintip, (192,538))
+        else:
+            screen.blit(marah, (127, 500))
+            if elapsed_ticks > 1500:
+                self.salah = False
+            
+
         if self.lives == 5:
             screen.blit(lives5, (15, 13))
         if self.lives == 4:
@@ -280,13 +303,13 @@ def main_menu():
     menu_font = pygame.font.Font('assets/fonts/GamepauseddemoRegular-RpmY6.otf', 36)
     menu_items = ['Start Game', 'Settings', 'Help', 'Quit']  # Tambahkan 'Settings' di sini
     selected = 0
+    pygame.mixer.music.set_volume(0.9)
 
     while True:
         screen.blit(gambar, (0,0))
-        screen.blit(logo, ((WIDTH//2)-220,25))
 
         for i, item in enumerate(menu_items):
-            color = (0, 255, 0) if i == selected else (0, 0, 0)
+            color = (0, 255, 0) if i == selected else (255, 255, 255)
             text = menu_font.render(item, True, color)
             screen.blit(text, (WIDTH // 2 - text.get_width() // 2, 250 + i * 50))
 
