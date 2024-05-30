@@ -2,6 +2,7 @@ import pygame, sys
 import random
 import time
 import nltk
+from abc import ABC, abstractmethod
 nltk.download('words')
 
 pygame.init()
@@ -48,7 +49,6 @@ lose.set_volume(0.3)
 
 # Game variables
 score = 0
-lives = 5
 word_speed = 2
 word_delay = 2
 word_list = []
@@ -123,9 +123,11 @@ class GameObject:
         self.height = height
         self._color = color
 
+    @abstractmethod
     def draw(self):
         pass  # Abstract method
 
+    @abstractmethod
     def update(self):
         pass  # Abstract method
 
